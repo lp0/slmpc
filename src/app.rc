@@ -1,0 +1,45 @@
+#include <windows.h>
+#include "debug.h"
+#include "slmpc.h"
+#include "version.h"
+
+// 1 ICON "app.ico"
+
+1 VERSIONINFO
+	FILEVERSION 0, 0, 0, 0
+	PRODUCTVERSION 0, 0, 0, 0
+#if DEBUG > 0
+	FILEFLAGSMASK GIT_FILEFLAGS_DEBUG
+#else
+	FILEFLAGSMASK GIT_FILEFLAGS_NORMAL
+#endif
+	FILEOS VOS_NT_WINDOWS32
+	FILETYPE VFT_APP
+	FILESUBTYPE 0
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "0809FDE9"
+		BEGIN
+			VALUE "Comments", RC_COMMENTS
+			VALUE "CompanyName", GIT_AUTHOR
+			VALUE "FileDescription", TITLE
+			VALUE "FileVersion", GIT_REV
+			VALUE "LegalCopyright", "Copyright \xA92009  Simon Arlott\0"
+			VALUE "InternalName", "slmpc\0"
+#ifdef _WIN64
+			VALUE "Platform", "WIN64\0"
+#else
+			VALUE "Platform", "WIN32\0"
+#endif
+			VALUE "ProductName", TITLE
+			VALUE "ProductVersion", GIT_REV
+			VALUE "OriginalFilename", "slmpc.exe\0"
+			VALUE "Licence", RC_GPL_2
+		END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 0x0809, 0xFDE9
+	END
+END

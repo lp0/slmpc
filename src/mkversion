@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+VER_WIN="$1"
+VER_IE="$2"
+rm -f version.h.tmp version.h
+echo "#define GIT_AUTHOR \"${GIT_AUTHOR_NAME}\\0\"" > version.h.tmp
+set +e
+git update-index --refresh --unmerged >/dev/null
+RET=$?
+set -e
+if [[ $RET -eq 0 ]]; then
+	echo "#define GIT_REV \"`git rev-parse --verify HEAD`\\0\"" >> version.h.tmp
+	echo "#define GIT_FILEFLAGS_NORMAL 0" >> version.h.tmp
+	echo "#define GIT_FILEFLAGS_DEBUG VS_FF_DEBUG" >> version.h.tmp
+else
+	echo "#define GIT_REV \"`git rev-parse --verify HEAD`-dirty\\0\"" >> version.h.tmp
+	echo "#define GIT_FILEFLAGS_NORMAL VS_FF_PATCHED" >> version.h.tmp
+	echo "#define GIT_FILEFLAGS_DEBUG VS_FF_DEBUG|VS_FF_PATCHED" >> version.h.tmp
+fi
+: ${USER=unknown}
+: ${HOSTNAME=unknown}
+NOW="`date --utc +%FT%TZ`"
+echo "#define RC_COMMENTS \"${NOW}\r\n_WIN32_WINNT=${VER_WIN}\r\n_WIN32_IE=${VER_IE}\\0\"" >> version.h.tmp
+GPL_2="`sed -e 's/"/""/g' -e 's/$/\\\\r\\\\n/' < ../GPL-2 | tr -d '\n'`"
+echo "#define RC_GPL_2 \"${GPL_2}\\0\"" >> version.h.tmp
+mv version.h.tmp version.h
