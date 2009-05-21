@@ -594,7 +594,7 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 			case MPC_STATUS:
 				odprintf("comms[parse]: status received, going idle");
 
-				ret = comms_send(data->s, "idle status\n");
+				ret = comms_send(data->s, "idle player\n");
 				if (ret) {
 					ret = snprintf(status->msg, sizeof(status->msg), "Error requesting idle mode (%d)", ret);
 					if (ret < 0)
@@ -610,31 +610,31 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 
 				switch (data->pending_cmd) {
 				case MPC_NONE:
-					if (1) { // TODO
-						odprintf("comms[parse]: requesting status");
+					odprintf("comms[parse]: no command pending, going idle");
 
-						ret = comms_send(data->s, "status\n");
-						if (ret) {
-							ret = snprintf(status->msg, sizeof(status->msg), "Error requesting idle mode (%d)", ret);
-							if (ret < 0)
-								status->msg[0] = 0;
-							return -1;
-						}
-
-						data->cmd = MPC_STATUS;
-					} else if (data->pending_cmd == MPC_NONE) {
-						odprintf("comms[parse]: no command pending, going idle");
-
-						ret = comms_send(data->s, "idle status\n");
-						if (ret) {
-							ret = snprintf(status->msg, sizeof(status->msg), "Error requesting idle mode (%d)", ret);
-							if (ret < 0)
-								status->msg[0] = 0;
-							return -1;
-						}
-
-						data->cmd = MPC_IDLE;
+					ret = comms_send(data->s, "idle player\n");
+					if (ret) {
+						ret = snprintf(status->msg, sizeof(status->msg), "Error requesting idle mode (%d)", ret);
+						if (ret < 0)
+							status->msg[0] = 0;
+						return -1;
 					}
+
+					data->cmd = MPC_IDLE;
+					break;
+
+				case MPC_STATUS:
+					odprintf("comms[parse]: pending command to request status");
+
+					ret = comms_send(data->s, "status\n");
+					if (ret) {
+						ret = snprintf(status->msg, sizeof(status->msg), "Error requesting status (%d)", ret);
+						if (ret < 0)
+							status->msg[0] = 0;
+						return -1;
+					}
+
+					data->cmd = MPC_STATUS;
 					break;
 				}
 
@@ -674,6 +674,18 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 			}
 			return -1;
 		} else {
+			switch (data->cmd) {
+			case MPC_IDLE:
+				if (!strcmp(data->parse_buf, "changed: player")) {
+					if (data->pending_cmd == MPC_NONE) {
+						odprintf("comms[parse]: player change, queuing status request");
+						data->pending_cmd = MPC_STATUS;
+					} else {
+						odprintf("comms[parse]: player change, ignoring");
+					}
+				}
+				break;
+			}
 		}
 	}
 
