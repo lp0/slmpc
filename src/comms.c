@@ -675,6 +675,21 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 			return -1;
 		} else {
 			switch (data->cmd) {
+			case MPC_NONE:
+				odprintf("comms[parse]: no command running?");
+				ret = snprintf(status->msg, sizeof(status->msg), "Internal error, got data but no command was running");
+				if (ret < 0)
+					status->msg[0] = 0;
+				return -1;
+
+			case MPC_CONNECT:
+				odprintf("comms[parse]: ignoring pre-connect message");
+				break;
+
+			case MPC_PASSWORD:
+				odprintf("comms[parse]: ignoring password response message");
+				break;
+
 			case MPC_IDLE:
 				if (!strcmp(data->parse_buf, "changed: player")) {
 					if (data->pending_cmd == MPC_NONE) {
