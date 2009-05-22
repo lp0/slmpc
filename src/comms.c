@@ -646,7 +646,9 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 
 				case MPC_CONNECT:
 				case MPC_PASSWORD:
-					odprintf("comms[parse]: pending connect/password?");
+				case MPC_IDLE:
+				case MPC_NOIDLE:
+					odprintf("comms[parse]: pending connect/password/idle?");
 					ret = snprintf(status->msg, sizeof(status->msg), "Internal error, got OK response to idle but invalid command was pending");
 					if (ret < 0)
 						status->msg[0] = 0;
