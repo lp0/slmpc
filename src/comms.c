@@ -685,6 +685,40 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					}
 				}
 				break;
+
+			case MPC_NOIDLE:
+				odprintf("comms[parse]: ignoring idle response");
+				break;
+
+			case MPC_STATUS:
+				if (!strcmp(msg_type, "state:")) {
+					if (!strcmp(data->parse_buf, "state: stop")) {
+						odprintf("comms[parse]: updating state (STOPPED)");
+						status->play = MPD_STOPPED;
+						return 1;
+					} else if (!strcmp(data->parse_buf, "state: play")) {
+						odprintf("comms[parse]: updating state (PLAYING)");
+						status->play = MPD_PLAYING;
+						return 1;
+					} else if (!strcmp(data->parse_buf, "state: pause")) {
+						odprintf("comms[parse]: updating state (PAUSED)");
+						status->play = MPD_PAUSED;
+						return 1;
+					} else {
+						odprintf("comms[parse]: updating state (UNKNOWN)");
+						status->play = MPD_UNKNOWN;
+						return 1;
+					}
+				}
+				break;
+
+			case MPC_PLAY:
+				odprintf("comms[parse]: ignoring play response");
+				break;
+
+			case MPC_PAUSE:
+				odprintf("comms[parse]: ignoring pause response");
+				break;
 			}
 		}
 	}
