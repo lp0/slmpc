@@ -614,16 +614,18 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 			case MPC_STATUS:
 				odprintf("comms[parse]: status received, going idle");
 
-				ret = comms_send(data->s, "idle player\n");
-				if (ret) {
-					ret = snprintf(status->msg, sizeof(status->msg), "Error requesting idle mode (%d)", ret);
-					if (ret < 0)
-						status->msg[0] = 0;
-					return -1;
-				}
+				if (data->pending_cmd != MPC_NONE) {
+					ret = comms_send(data->s, "idle player\n");
+					if (ret) {
+						ret = snprintf(status->msg, sizeof(status->msg), "Error requesting idle mode (%d)", ret);
+						if (ret < 0)
+							status->msg[0] = 0;
+						return -1;
+					}
 
-				data->cmd = MPC_IDLE;
-				break;
+					data->cmd = MPC_IDLE;
+					break;
+				}
 
 			case MPC_IDLE:
 			case MPC_NOIDLE:
