@@ -455,10 +455,23 @@ int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WO
 				for (i = 0; i < size; i++) {
 					/* find a newline and parse the buffer */
 					if (recv_buf[i] == '\n') {
-						comms_parse(hWnd, data);
+						ret = comms_parse(hWnd, data);
 
 						/* clear buffer */
 						data->parse_pos = 0;
+
+						if (ret != 0)
+							tray_update(hWnd, data);
+
+						if (ret < 0) {
+							SetLastError(0);
+							ret = closesocket(data->s);
+							err = GetLastError();
+							odprintf("closesocket: %d (%ld)", ret, err);
+
+							data->s = INVALID_SOCKET;
+							return 1;
+						}
 
 					/* buffer overflow */
 					} else if (data->parse_pos == sizeof(data->parse_buf)/sizeof(char) - 1) {
