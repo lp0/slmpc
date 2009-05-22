@@ -642,6 +642,13 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 			}
 		} else if (!strcmp(msg_type, "ACK")) {
 			switch (data->cmd) {
+			case MPC_NONE:
+				odprintf("comms[parse]: no command running?");
+				ret = snprintf(status->msg, sizeof(status->msg), "Internal error, got ACK response but no command was running");
+				if (ret < 0)
+					status->msg[0] = 0;
+				return -1;
+
 			case MPC_CONNECT:
 				ret = snprintf(status->msg, sizeof(status->msg), "Session start failed (%s)", data->parse_buf);
 				if (ret < 0)
@@ -668,6 +675,18 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 
 			case MPC_NOIDLE:
 				ret = snprintf(status->msg, sizeof(status->msg), "Idle abort failed (%s)", data->parse_buf);
+				if (ret < 0)
+					status->msg[0] = 0;
+				return -1;
+
+			case MPC_PLAY:
+				ret = snprintf(status->msg, sizeof(status->msg), "Play command failed (%s)", data->parse_buf);
+				if (ret < 0)
+					status->msg[0] = 0;
+				return -1;
+
+			case MPC_PAUSE:
+				ret = snprintf(status->msg, sizeof(status->msg), "Pause command failed (%s)", data->parse_buf);
 				if (ret < 0)
 					status->msg[0] = 0;
 				return -1;
