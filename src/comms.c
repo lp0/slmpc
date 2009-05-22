@@ -557,6 +557,13 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 	if (sscanf(data->parse_buf, "%64s", msg_type) == 1) {
 		if (!strcmp(msg_type, "OK")) {
 			switch (data->cmd) {	
+			case MPC_NONE:
+				odprintf("comms[parse]: no command running?");
+				ret = snprintf(status->msg, sizeof(status->msg), "Internal error, got OK response but no command was running");
+				if (ret < 0)
+					status->msg[0] = 0;
+				return -1;
+
 			case MPC_CONNECT:
 				if (data->password[0] != 0) {
 					odprintf("comms[parse]: connected, sending password");
