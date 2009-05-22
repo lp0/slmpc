@@ -695,6 +695,8 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					break;
 				}
 
+				data->pending_cmd = MPC_NONE;
+
 				break;
 			}
 		} else if (!strcmp(msg_type, "ACK")) {
