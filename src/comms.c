@@ -606,6 +606,7 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 				break;
 
 			case MPC_IDLE:
+			case MPC_NOIDLE:
 				odprintf("comms[parse]: resume from idle");
 
 				switch (data->pending_cmd) {
@@ -623,6 +624,14 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					data->cmd = MPC_IDLE;
 					break;
 
+				case MPC_CONNECT:
+				case MPC_PASSWORD:
+					odprintf("comms[parse]: pending connect/password?");
+					ret = snprintf(status->msg, sizeof(status->msg), "Internal error, got OK response to idle but invalid command was pending");
+					if (ret < 0)
+						status->msg[0] = 0;
+					return -1;
+
 				case MPC_STATUS:
 					odprintf("comms[parse]: pending command to request status");
 
@@ -635,6 +644,34 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					}
 
 					data->cmd = MPC_STATUS;
+					break;
+
+				case MPC_PLAY:
+					odprintf("comms[parse]: pending command to play");
+
+					ret = comms_send(data->s, "play -1\n");
+					if (ret) {
+						ret = snprintf(status->msg, sizeof(status->msg), "Error sending play command (%d)", ret);
+						if (ret < 0)
+							status->msg[0] = 0;
+						return -1;
+					}
+
+					data->cmd = MPC_PLAY;
+					break;
+
+				case MPC_PAUSE:
+					odprintf("comms[parse]: pending command to pause");
+
+					ret = comms_send(data->s, "pause 1\n");
+					if (ret) {
+						ret = snprintf(status->msg, sizeof(status->msg), "Error sending pause command (%d)", ret);
+						if (ret < 0)
+							status->msg[0] = 0;
+						return -1;
+					}
+
+					data->cmd = MPC_PAUSE;
 					break;
 				}
 
