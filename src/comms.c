@@ -698,6 +698,21 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 				data->pending_cmd = MPC_NONE;
 
 				break;
+
+			case MPC_PLAY:
+			case MPC_PAUSE:
+				odprintf("comms[parse]: finished play/pause, requesting status");
+
+				ret = comms_send(data->s, "status\n");
+				if (ret) {
+					ret = snprintf(status->msg, sizeof(status->msg), "Error requesting status (%d)", ret);
+					if (ret < 0)
+						status->msg[0] = 0;
+					return -1;
+				}
+
+				data->cmd = MPC_STATUS;
+				break;
 			}
 		} else if (!strcmp(msg_type, "ACK")) {
 			switch (data->cmd) {
