@@ -27,6 +27,7 @@
 #include "comms.h"
 #include "icon.h"
 #include "tray.h"
+#include "keyboard.h"
 
 int slmpc_run(HINSTANCE hInstance, HWND hWnd, char *node, char *service, char *password) {
 	struct slmpc_data data;
@@ -51,6 +52,7 @@ int slmpc_run(HINSTANCE hInstance, HWND hWnd, char *node, char *service, char *p
 	data.node = node;
 	data.service = service;
 	data.password = password;
+	data.sl_status = kbd_get();
 
 	data.running = 0;
 	status = EXIT_FAILURE;

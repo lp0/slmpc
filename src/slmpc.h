@@ -50,6 +50,12 @@ enum cmd_status {
 	MPC_PAUSE
 };
 
+enum sl_status {
+	SL_UNKNOWN,
+	SL_OFF,
+	SL_ON
+};
+
 struct tray_status {
 	enum conn_status conn;
 	enum play_status play;
@@ -90,6 +96,7 @@ struct slmpc_data {
 	struct tray_status status;
 	enum cmd_status cmd;
 	enum cmd_status pending_cmd;
+	enum sl_status sl_status;
 };
 
 void slmpc_shutdown(struct slmpc_data *data, int status);

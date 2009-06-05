@@ -26,6 +26,7 @@
 #include "slmpc.h"
 #include "comms.h"
 #include "tray.h"
+#include "keyboard.h"
 
 int comms_init(struct slmpc_data *data) {
 	INT ret;
@@ -807,14 +808,20 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					if (!strcmp(data->parse_buf, "state: stop")) {
 						odprintf("comms[parse]: updating state (STOPPED)");
 						status->play = MPD_STOPPED;
+						if (data->sl_status == SL_ON)
+							data->sl_status = kbd_set(SL_OFF);
 						return 1;
 					} else if (!strcmp(data->parse_buf, "state: play")) {
 						odprintf("comms[parse]: updating state (PLAYING)");
 						status->play = MPD_PLAYING;
+						if (data->sl_status == SL_OFF)
+							data->sl_status = kbd_set(SL_ON);
 						return 1;
 					} else if (!strcmp(data->parse_buf, "state: pause")) {
 						odprintf("comms[parse]: updating state (PAUSED)");
 						status->play = MPD_PAUSED;
+						if (data->sl_status == SL_ON)
+							data->sl_status = kbd_set(SL_OFF);
 						return 1;
 					} else {
 						odprintf("comms[parse]: updating state (UNKNOWN)");

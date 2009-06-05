@@ -22,7 +22,7 @@ ifeq ("$(shell uname -o)", "Cygwin")
 	WINDRES_CHARSET=
 endif
 
-SLMPC_OBJS=debug.o tray.o icon.o comms.o slmpc.o app.o
+SLMPC_OBJS=debug.o tray.o icon.o comms.o keyboard.o slmpc.o app.o
 
 all: slmpc.exe
 clean:
@@ -36,9 +36,10 @@ clean:
 
 debug.o: debug.h
 icon.o: debug.h icon.h
-slmpc.o: config.h debug.h slmpc.h tray.h
+slmpc.o: config.h debug.h slmpc.h tray.h keyboard.h
 tray.o: config.h debug.h tray.h icon.h slmpc.h
 comms.o: config.h debug.h slmpc.h tray.h
+keyboard.o: config.h debug.h slmpc.h
 app.o: version.h
 
 version.h:
