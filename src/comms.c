@@ -461,6 +461,9 @@ int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WO
 						/* clear buffer */
 						data->parse_pos = 0;
 
+						if (ret < 0)
+							status->conn = NOT_CONNECTED;
+
 						if (ret != 0)
 							tray_update(hWnd, data);
 
