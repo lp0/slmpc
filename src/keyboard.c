@@ -69,7 +69,7 @@ enum sl_status kbd_set(enum sl_status status) {
 		ret = SendInput(2, (LPINPUT)&keys, sizeof(INPUT));
 		err = GetLastError();
 		odprintf("SendInput: %d (%d)", ret, err);
-		if (err == 0)
+		if (ret == 0 || err == 0)
 			current = status;
 		break;
 
