@@ -21,5 +21,8 @@
 
 #include "config.h"
 
+int kbd_init(struct slmpc_data *data);
+LRESULT CALLBACK kbd_hook(int code, WPARAM wParam, LPARAM lParam);
+void kbd_destroy(struct slmpc_data *data);
 enum sl_status kbd_get(void);
 enum sl_status kbd_set(enum sl_status status);
