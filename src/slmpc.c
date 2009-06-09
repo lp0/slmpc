@@ -48,6 +48,7 @@ int slmpc_run(HINSTANCE hInstance, HWND hWnd, char *node, char *service, char *p
 		return EXIT_FAILURE;
 	}
 
+	data.hWnd = hWnd;
 	data.hInstance = hInstance;
 	data.node = node;
 	data.service = service;
@@ -56,6 +57,11 @@ int slmpc_run(HINSTANCE hInstance, HWND hWnd, char *node, char *service, char *p
 
 	data.running = 0;
 	status = EXIT_FAILURE;
+
+	ret = kbd_init(&data);
+	odprintf("kbd_init: %d", ret);
+	if (ret != 0)
+		goto fail_kbd;
 
 	ret = icon_init();
 	odprintf("icon_init: %d", ret);
@@ -127,6 +133,9 @@ fail_tray:
 	icon_free();
 
 fail_icon:
+	kbd_destroy(&data);
+
+fail_kbd:
 	SetLastError(0);
 	retlp = SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)NULL);
 	err = GetLastError();
@@ -200,6 +209,10 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		ret = comms_activity(hWnd, data, (SOCKET)wParam, WSAGETSELECTEVENT(lParam), WSAGETSELECTERROR(lParam));
 		if (ret != 0)
 			slmpc_retry(hWnd, data);
+		return TRUE;
+
+	case WM_APP_KBD:
+		mbprintf(TITLE, MB_OK, "WM_APP_KBD %d %d", wParam, lParam);
 		return TRUE;
 
 	case WM_TIMER:

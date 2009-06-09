@@ -21,8 +21,10 @@
 #define WM_APP_NET  (WM_APP+0)
 #define WM_APP_TRAY (WM_APP+1)
 #define WM_APP_SOCK (WM_APP+2)
+#define WM_APP_KBD  (WM_APP+3)
 
 #define NET_MSG_CONNECT 0
+#define KBD_MSG_CHECK 0
 
 #define RETRY_TIMER_ID 1
 
@@ -63,6 +65,7 @@ struct tray_status {
 };
 
 struct slmpc_data {
+	HWND hWnd;
 	HINSTANCE hInstance;
 	int running;
 
@@ -84,6 +87,8 @@ struct slmpc_data {
 	int sa_len;
 #endif
 	SOCKET s;
+
+	HHOOK kbd_hook;
 
 	char parse_buf[512];
 	unsigned int parse_pos;
