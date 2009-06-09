@@ -46,14 +46,14 @@ int kbd_init(struct slmpc_data *data) {
 	return 0;
 }
 
-LRESULT CALLBACK kbd_hook(int code, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK kbd_hook(int nCode, WPARAM wParam, LPARAM lParam) {
 	struct slmpc_data *data = _data;
 	KBDLLHOOKSTRUCT *event;
 
 	event = (PKBDLLHOOKSTRUCT)lParam;
 
-	if (_data == NULL || event == NULL)
-		return CallNextHookEx(NULL, code, wParam, lParam);
+	if (nCode < 0 || _data == NULL || event == NULL)
+		return CallNextHookEx(NULL, nCode, wParam, lParam);
 	
 	if (event->vkCode == VK_SCROLL) {
 		BOOL ret;
@@ -65,7 +65,7 @@ LRESULT CALLBACK kbd_hook(int code, WPARAM wParam, LPARAM lParam) {
 		odprintf("PostMessage: %s (%d)", ret == TRUE ? "TRUE" : "FALSE", err);
 	}
 
-	return CallNextHookEx(_data->kbd_hook, code, wParam, lParam);
+	return CallNextHookEx(_data->kbd_hook, nCode, wParam, lParam);
 }
 
 void kbd_destroy(struct slmpc_data *data) {
