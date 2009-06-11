@@ -211,10 +211,6 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			slmpc_retry(hWnd, data);
 		return TRUE;
 
-	case WM_APP_KBD:
-		mbprintf(TITLE, MB_OK, "WM_APP_KBD %d %d", wParam, lParam);
-		return TRUE;
-
 	case WM_TIMER:
 		switch (wParam) {
 		case RETRY_TIMER_ID:
@@ -226,6 +222,14 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			ret = comms_connect(hWnd, data);
 			if (ret != 0)
 				slmpc_retry(hWnd, data);
+			return TRUE;
+		case KBD_TIMER_ID:
+			SetLastError(0);
+			ret = KillTimer(hWnd, KBD_TIMER_ID);
+			err = GetLastError();
+			odprintf("KillTimer: %d (%ld)", data, err);
+
+			/* TODO */
 			return TRUE;
 		}
 		break;

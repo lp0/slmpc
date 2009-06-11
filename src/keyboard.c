@@ -60,9 +60,9 @@ LRESULT CALLBACK kbd_hook(int nCode, WPARAM wParam, LPARAM lParam) {
 		DWORD err;
 
 		SetLastError(0);
-		ret = PostMessage(data->hWnd, WM_APP_KBD, 0, KBD_MSG_CHECK);
+		ret = SetTimer(data->hWnd, KBD_TIMER_ID, 10, NULL);
 		err = GetLastError();
-		odprintf("PostMessage: %s (%d)", ret == TRUE ? "TRUE" : "FALSE", err);
+		odprintf("SetTimer: %d (%ld)", data, err);
 	}
 
 	return CallNextHookEx(_data->kbd_hook, nCode, wParam, lParam);
