@@ -55,7 +55,7 @@ LRESULT CALLBACK kbd_hook(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (nCode < 0 || _data == NULL || event == NULL)
 		return CallNextHookEx(NULL, nCode, wParam, lParam);
 	
-	if (event->vkCode == VK_SCROLL) {
+	if (event->vkCode == VK_SCROLL && (event->flags & LLKHF_UP) == 0) {
 		BOOL ret;
 		DWORD err;
 
