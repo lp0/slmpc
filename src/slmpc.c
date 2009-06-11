@@ -218,6 +218,11 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	case WM_TIMER:
 		switch (wParam) {
 		case RETRY_TIMER_ID:
+			SetLastError(0);
+			ret = KillTimer(hWnd, RETRY_TIMER_ID);
+			err = GetLastError();
+			odprintf("KillTimer: %d (%ld)", data, err);
+			
 			ret = comms_connect(hWnd, data);
 			if (ret != 0)
 				slmpc_retry(hWnd, data);
