@@ -24,9 +24,9 @@
 #define WM_APP_KBD  (WM_APP+3)
 
 #define NET_MSG_CONNECT 0
+#define KBD_MSG_CHECK 1
 
 #define RETRY_TIMER_ID 1
-#define KBD_TIMER_ID 2
 
 enum conn_status {
 	NOT_CONNECTED,

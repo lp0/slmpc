@@ -52,20 +52,23 @@ LRESULT CALLBACK kbd_hook(int nCode, WPARAM wParam, LPARAM lParam) {
 
 	event = (PKBDLLHOOKSTRUCT)lParam;
 
-	if (nCode < 0 || _data == NULL || event == NULL)
+	if (_data == NULL)
 		return CallNextHookEx(NULL, nCode, wParam, lParam);
+
+	if (nCode < 0 || event == NULL)
+		return CallNextHookEx(data->kbd_hook, nCode, wParam, lParam);
 	
 	if (event->vkCode == VK_SCROLL && (event->flags & LLKHF_UP) == 0) {
 		BOOL ret;
 		DWORD err;
 
 		SetLastError(0);
-		ret = SetTimer(data->hWnd, KBD_TIMER_ID, 10, NULL);
+		ret = PostMessage(data->hWnd, WM_APP_KBD, 0, KBD_MSG_CHECK);
 		err = GetLastError();
-		odprintf("SetTimer: %d (%ld)", data, err);
+		odprintf("PostMessage: %s (%ld)", ret == TRUE ? "TRUE" : "FALSE", err);
 	}
 
-	return CallNextHookEx(_data->kbd_hook, nCode, wParam, lParam);
+	return CallNextHookEx(data->kbd_hook, nCode, wParam, lParam);
 }
 
 void kbd_destroy(struct slmpc_data *data) {

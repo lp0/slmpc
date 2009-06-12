@@ -199,6 +199,14 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		}
 		break;
 
+	case WM_APP_KBD:
+		switch (lParam) {
+		case KBD_MSG_CHECK:
+			
+			return TRUE;
+		}
+		break;
+
 	case WM_APP_TRAY:
 		retb = tray_activity(hWnd, data, wParam, lParam);
 		if (retb == TRUE)
@@ -222,14 +230,6 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			ret = comms_connect(hWnd, data);
 			if (ret != 0)
 				slmpc_retry(hWnd, data);
-			return TRUE;
-		case KBD_TIMER_ID:
-			SetLastError(0);
-			ret = KillTimer(hWnd, KBD_TIMER_ID);
-			err = GetLastError();
-			odprintf("KillTimer: %d (%ld)", data, err);
-
-			/* TODO */
 			return TRUE;
 		}
 		break;
