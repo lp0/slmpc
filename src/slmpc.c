@@ -48,7 +48,6 @@ int slmpc_run(HINSTANCE hInstance, HWND hWnd, char *node, char *service, char *p
 		return EXIT_FAILURE;
 	}
 
-	data.hWnd = hWnd;
 	data.hInstance = hInstance;
 	data.node = node;
 	data.service = service;
@@ -58,7 +57,7 @@ int slmpc_run(HINSTANCE hInstance, HWND hWnd, char *node, char *service, char *p
 	data.running = 0;
 	status = EXIT_FAILURE;
 
-	ret = kbd_init(&data);
+	ret = kbd_init(data.hInstance);
 	odprintf("kbd_init: %d", ret);
 	if (ret != 0)
 		goto fail_kbd;
@@ -133,7 +132,7 @@ fail_tray:
 	icon_free();
 
 fail_icon:
-	kbd_destroy(&data);
+	kbd_destroy();
 
 fail_kbd:
 	SetLastError(0);

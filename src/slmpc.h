@@ -65,7 +65,6 @@ struct tray_status {
 };
 
 struct slmpc_data {
-	HWND hWnd;
 	HINSTANCE hInstance;
 	int running;
 
@@ -87,8 +86,6 @@ struct slmpc_data {
 	int sa_len;
 #endif
 	SOCKET s;
-
-	HHOOK kbd_hook;
 
 	char parse_buf[512];
 	unsigned int parse_pos;

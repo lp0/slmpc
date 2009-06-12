@@ -24,65 +24,58 @@
 #include "slmpc.h"
 #include "keyboard.h"
 
-struct slmpc_data *_data = NULL;
+HWND hWnd = NULL;
+HHOOK hHook = NULL;
 
-int kbd_init(struct slmpc_data *data) {
+int kbd_init(HINSTANCE hInstance) {
 	HHOOK ret;
 	DWORD err;
 
 	odprintf("kbd[init]");
 
-	_data = data;
-
 	SetLastError(0);
-	ret = SetWindowsHookEx(WH_KEYBOARD_LL, kbd_hook, data->hInstance, 0);
+	ret = SetWindowsHookEx(WH_KEYBOARD_LL, kbd_hook, hInstance, 0);
 	err = GetLastError();
 	odprintf("SetWindowsHookEx: %p (%d)", ret, err);
 	if (ret == NULL)
 		return 1;
 
-	data->kbd_hook = ret;
+	hHook = ret;
 
 	return 0;
 }
 
 LRESULT CALLBACK kbd_hook(int nCode, WPARAM wParam, LPARAM lParam) {
-	struct slmpc_data *data = _data;
 	KBDLLHOOKSTRUCT *event;
 
 	event = (PKBDLLHOOKSTRUCT)lParam;
 
-	if (_data == NULL)
-		return CallNextHookEx(NULL, nCode, wParam, lParam);
-
 	if (nCode < 0 || event == NULL)
-		return CallNextHookEx(data->kbd_hook, nCode, wParam, lParam);
+		return CallNextHookEx(hHook, nCode, wParam, lParam);
 	
 	if (event->vkCode == VK_SCROLL && (event->flags & LLKHF_UP) == 0) {
 		BOOL ret;
 		DWORD err;
 
 		SetLastError(0);
-		ret = PostMessage(data->hWnd, WM_APP_KBD, 0, KBD_MSG_CHECK);
+		ret = PostMessage(hWnd, WM_APP_KBD, 0, KBD_MSG_CHECK);
 		err = GetLastError();
 		odprintf("PostMessage: %s (%ld)", ret == TRUE ? "TRUE" : "FALSE", err);
 	}
 
-	return CallNextHookEx(data->kbd_hook, nCode, wParam, lParam);
+	return CallNextHookEx(hHook, nCode, wParam, lParam);
 }
 
-void kbd_destroy(struct slmpc_data *data) {
+void kbd_destroy(void) {
 	BOOL ret;
 	DWORD err;
 
 	odprintf("kbd[destroy]");
 
 	SetLastError(0);
-	ret = UnhookWindowsHookEx(data->kbd_hook);
+	ret = UnhookWindowsHookEx(hHook);
 	err = GetLastError();
 	odprintf("UnhookWindowsHookEx: %s (%d)", ret == TRUE ? "TRUE" : "FALSE", err);
-
-	_data = NULL;
 }
 
 enum sl_status kbd_get(void) {
