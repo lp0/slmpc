@@ -21,7 +21,7 @@
 
 #include "config.h"
 
-int kbd_init(HINSTANCE hInstance);
+int kbd_init(HWND hWnd, HINSTANCE hInstance);
 LRESULT CALLBACK kbd_hook(int code, WPARAM wParam, LPARAM lParam);
 void kbd_destroy(void);
 enum sl_status kbd_get(void);

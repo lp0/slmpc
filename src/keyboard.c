@@ -27,7 +27,7 @@
 HWND hWnd = NULL;
 HHOOK hHook = NULL;
 
-int kbd_init(HINSTANCE hInstance) {
+int kbd_init(HWND hWnd_, HINSTANCE hInstance) {
 	HHOOK ret;
 	DWORD err;
 
@@ -40,6 +40,7 @@ int kbd_init(HINSTANCE hInstance) {
 	if (ret == NULL)
 		return 1;
 
+	hWnd = hWnd_;
 	hHook = ret;
 
 	return 0;

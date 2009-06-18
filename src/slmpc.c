@@ -57,7 +57,7 @@ int slmpc_run(HINSTANCE hInstance, HWND hWnd, char *node, char *service, char *p
 	data.running = 0;
 	status = EXIT_FAILURE;
 
-	ret = kbd_init(data.hInstance);
+	ret = kbd_init(hWnd, hInstance);
 	odprintf("kbd_init: %d", ret);
 	if (ret != 0)
 		goto fail_kbd;
