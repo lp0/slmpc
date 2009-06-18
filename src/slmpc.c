@@ -201,7 +201,9 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	case WM_APP_KBD:
 		switch (lParam) {
 		case KBD_MSG_CHECK:
-			
+			ret = comms_kbd(hWnd, data);
+			if (ret != 0)
+				slmpc_retry(hWnd, data);
 			return TRUE;
 		}
 		break;

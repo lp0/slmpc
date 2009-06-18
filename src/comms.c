@@ -847,3 +847,89 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 
 	return 0;
 }
+
+int comms_run(HWND hWnd, struct slmpc_data *data, enum cmd_status cmd) {
+	struct tray_status *status = &data->status;
+	INT ret;
+	DWORD err;
+
+	odprintf("comms[run]: cmd=%d", cmd);
+
+	if (status->conn != CONNECTED)
+		return 0;
+	if (status->play == MPD_UNKNOWN)
+		return 0;
+
+	switch (data->cmd) {
+	case MPC_NONE:
+	case MPC_CONNECT:
+	case MPC_PASSWORD:
+		odprintf("comms[run]: connection not ready for commands");
+		return 0;
+
+	case MPC_IDLE:
+		ret = comms_send(data->s, "noidle\n");
+		if (ret) {
+			status->conn = NOT_CONNECTED;
+
+			ret = snprintf(status->msg, sizeof(status->msg), "Error exiting idle mode (%d)", ret);
+			if (ret < 0)
+				status->msg[0] = 0;
+			tray_update(hWnd, data);
+
+			SetLastError(0);
+			ret = closesocket(data->s);
+			err = GetLastError();
+			odprintf("closesocket: %d (%ld)", ret, err);
+
+			data->s = INVALID_SOCKET;
+			return 1;
+		}
+
+		data->cmd = MPC_NOIDLE;
+
+	case MPC_STATUS:
+		data->pending_cmd = cmd;
+		return 0;
+
+	case MPC_NOIDLE:
+	case MPC_PLAY:
+	case MPC_PAUSE:
+		odprintf("comms[run]: command already running");
+		return 0;
+	}
+
+	return 0;
+}
+
+int comms_kbd(HWND hWnd, struct slmpc_data *data) {
+	struct tray_status *status = &data->status;
+	enum sl_status current;
+
+	odprintf("comms[kbd]");
+
+	if (status->conn != CONNECTED)
+		return 0;
+	if (status->play == MPD_UNKNOWN)
+		return 0;
+
+	current = kbd_get();
+
+	switch (current) {
+	case SL_ON:
+		if (data->sl_status == SL_OFF && status->play != MPD_PLAYING)
+			return comms_run(hWnd, data, MPC_PLAY);
+		break;
+
+	case SL_OFF:
+		if (data->sl_status == SL_ON && status->play == MPD_PLAYING)
+			return comms_run(hWnd, data, MPC_PAUSE);
+		break;
+
+	default:
+		break;
+	}
+
+	data->sl_status = current;
+	return 0;
+}

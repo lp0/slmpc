@@ -30,3 +30,4 @@ void comms_disconnect(struct slmpc_data *data);
 int comms_connect(HWND hWnd, struct slmpc_data *data);
 int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WORD sError);
 int comms_parse(HWND hWnd, struct slmpc_data *data);
+int comms_kbd(HWND hWnd, struct slmpc_data *data);
