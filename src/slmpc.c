@@ -162,7 +162,7 @@ void slmpc_retry(HWND hWnd, struct slmpc_data *data) {
 		SetLastError(0);
 		ret = SetTimer(hWnd, RETRY_TIMER_ID, 5000, NULL); /* 5 seconds */
 		err = GetLastError();
-		odprintf("SetTimer: %d (%ld)", data, err);
+		odprintf("SetTimer: %d (%ld)", ret, err);
 		if (ret == 0) {
 			mbprintf(TITLE, MB_OK|MB_ICONERROR, "Error starting connection retry timer (%ld)", err);
 			slmpc_shutdown(data, EXIT_FAILURE);
