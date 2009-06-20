@@ -134,6 +134,8 @@ void comms_disconnect(struct slmpc_data *data) {
 	data->status.conn = NOT_CONNECTED;
 
 	if (data->s != INVALID_SOCKET) {
+		comms_send(data->s, "close\n");
+
 		SetLastError(0);
 		ret = closesocket(data->s);
 		err = GetLastError();
