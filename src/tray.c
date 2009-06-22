@@ -269,7 +269,7 @@ BOOL tray_activity(HWND hWnd, struct slmpc_data *data, WPARAM wParam, LPARAM lPa
 		case NOTIFYICON_VERSION:
 			switch (lParam) {
 			case WM_CONTEXTMENU:
-				slmpc_shutdown(data, EXIT_SUCCESS);
+				slmpc_shutdown(hWnd, data, EXIT_SUCCESS);
 				return TRUE;
 
 			default:
@@ -279,7 +279,7 @@ BOOL tray_activity(HWND hWnd, struct slmpc_data *data, WPARAM wParam, LPARAM lPa
 		case 0:
 			switch (lParam) {
 			case WM_RBUTTONUP:
-				slmpc_shutdown(data, EXIT_SUCCESS);
+				slmpc_shutdown(hWnd, data, EXIT_SUCCESS);
 				return TRUE;
 
 			default:

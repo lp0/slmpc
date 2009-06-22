@@ -27,6 +27,7 @@
 #define KBD_MSG_CHECK 1
 
 #define RETRY_TIMER_ID 1
+#define CMD_TIMER_ID 2
 
 enum conn_status {
 	NOT_CONNECTED,
@@ -101,4 +102,4 @@ struct slmpc_data {
 	enum sl_status sl_status;
 };
 
-void slmpc_shutdown(struct slmpc_data *data, int status);
+void slmpc_shutdown(HWND hWnd, struct slmpc_data *data, int status);

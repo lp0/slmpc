@@ -28,6 +28,10 @@
 #include "tray.h"
 #include "keyboard.h"
 
+int comms_send(SOCKET s, const char *data);
+void comms_timer_start(HWND hWnd);
+void comms_timer_stop(HWND hWnd);
+
 int comms_init(struct slmpc_data *data) {
 	INT ret;
 	DWORD err;
@@ -112,7 +116,7 @@ int comms_init(struct slmpc_data *data) {
 	return 0;
 }
 
-void comms_destroy(struct slmpc_data *data) {
+void comms_destroy(HWND hWnd, struct slmpc_data *data) {
 	odprintf("comms[destroy]");
 
 #if HAVE_GETADDRINFO
@@ -122,10 +126,10 @@ void comms_destroy(struct slmpc_data *data) {
 	}
 #endif
 
-	comms_disconnect(data);
+	comms_disconnect(hWnd, data);
 }
 
-void comms_disconnect(struct slmpc_data *data) {
+void comms_disconnect(HWND hWnd, struct slmpc_data *data) {
 	INT ret;
 	DWORD err;
 
@@ -142,6 +146,8 @@ void comms_disconnect(struct slmpc_data *data) {
 		odprintf("closesocket: %d (%ld)", ret, err);
 
 		data->s = INVALID_SOCKET;
+		comms_timer_stop(hWnd);
+		data->cmd = MPC_NONE;
 	}
 }
 
@@ -251,7 +257,10 @@ int comms_connect(HWND hWnd, struct slmpc_data *data) {
 		ret = closesocket(data->s);
 		err = GetLastError();
 		odprintf("closesocket: %d (%ld)", ret, err);
+
 		data->s = INVALID_SOCKET;
+		comms_timer_stop(hWnd);
+		data->cmd = MPC_NONE;
 
 #if HAVE_GETADDRINFO
 		data->addrs_cur = data->addrs_cur->ai_next;
@@ -273,7 +282,10 @@ int comms_connect(HWND hWnd, struct slmpc_data *data) {
 		ret = closesocket(data->s);
 		err = GetLastError();
 		odprintf("closesocket: %d (%ld)", ret, err);
+
 		data->s = INVALID_SOCKET;
+		comms_timer_stop(hWnd);
+		data->cmd = MPC_NONE;
 
 #if HAVE_GETADDRINFO
 		data->addrs_cur = data->addrs_cur->ai_next;
@@ -295,7 +307,10 @@ int comms_connect(HWND hWnd, struct slmpc_data *data) {
 		ret = closesocket(data->s);
 		err = GetLastError();
 		odprintf("closesocket: %d (%ld)", ret, err);
+
 		data->s = INVALID_SOCKET;
+		comms_timer_stop(hWnd);
+		data->cmd = MPC_NONE;
 
 #if HAVE_GETADDRINFO
 		data->addrs_cur = data->addrs_cur->ai_next;
@@ -346,7 +361,10 @@ int comms_connect(HWND hWnd, struct slmpc_data *data) {
 		ret = closesocket(data->s);
 		err = GetLastError();
 		odprintf("closesocket: %d (%ld)", ret, err);
+
 		data->s = INVALID_SOCKET;
+		comms_timer_stop(hWnd);
+		data->cmd = MPC_NONE;
 
 #if HAVE_GETADDRINFO
 		data->addrs_cur = data->addrs_cur->ai_next;
@@ -381,6 +399,7 @@ int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WO
 			data->pending_cmd = MPC_NONE;
 			status->msg[0] = 0;
 			tray_update(hWnd, data);
+			comms_timer_start(hWnd);
 
 #if HAVE_GETADDRINFO
 			freeaddrinfo(data->addrs_res);
@@ -409,6 +428,9 @@ int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WO
 			odprintf("closesocket: %d (%ld)", ret, err);
 
 			data->s = INVALID_SOCKET;
+			comms_timer_stop(hWnd);
+			data->cmd = MPC_NONE;
+
 #if HAVE_GETADDRINFO
 			data->addrs_cur = data->addrs_cur->ai_next;
 #endif
@@ -448,6 +470,8 @@ int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WO
 				odprintf("closesocket: %d (%ld)", ret, err);
 
 				data->s = INVALID_SOCKET;
+				comms_timer_stop(hWnd);
+				data->cmd = MPC_NONE;
 				return 1;
 			} else if (err == WSAEWOULDBLOCK) {
 				return 0;
@@ -476,6 +500,8 @@ int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WO
 							odprintf("closesocket: %d (%ld)", ret, err);
 
 							data->s = INVALID_SOCKET;
+							comms_timer_stop(hWnd);
+							data->cmd = MPC_NONE;
 							return 1;
 						}
 
@@ -517,6 +543,8 @@ int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WO
 			odprintf("closesocket: %d (%ld)", ret, err);
 
 			data->s = INVALID_SOCKET;
+			comms_timer_stop(hWnd);
+			data->cmd = MPC_NONE;
 			return 1;
 		}
 
@@ -540,6 +568,8 @@ int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WO
 		tray_update(hWnd, data);
 
 		data->s = INVALID_SOCKET;
+		comms_timer_stop(hWnd);
+		data->cmd = MPC_NONE;
 		return 1;
 
 	default:
@@ -575,6 +605,8 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 
 	if (sscanf(data->parse_buf, "%64s", msg_type) == 1) {
 		if (!strcmp(msg_type, "OK")) {
+			comms_timer_stop(hWnd);
+
 			switch (data->cmd) {	
 			case MPC_NONE:
 				odprintf("comms[parse]: no command running?");
@@ -598,6 +630,7 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					}
 
 					data->cmd = MPC_PASSWORD;
+					comms_timer_start(hWnd);
 					break;
 				}
 				odprintf("comms[parse]: connected, requesting status");
@@ -615,6 +648,7 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 				}
 
 				data->cmd = MPC_STATUS;
+				comms_timer_start(hWnd);
 				break;
 
 			case MPC_STATUS:
@@ -674,6 +708,7 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					}
 
 					data->cmd = MPC_STATUS;
+					comms_timer_start(hWnd);
 					break;
 
 				case MPC_PLAY:
@@ -688,6 +723,7 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					}
 
 					data->cmd = MPC_PLAY;
+					comms_timer_start(hWnd);
 					break;
 
 				case MPC_PAUSE:
@@ -702,11 +738,11 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 					}
 
 					data->cmd = MPC_PAUSE;
+					comms_timer_start(hWnd);
 					break;
 				}
 
 				data->pending_cmd = MPC_NONE;
-
 				break;
 
 			case MPC_PLAY:
@@ -722,9 +758,12 @@ int comms_parse(HWND hWnd, struct slmpc_data *data) {
 				}
 
 				data->cmd = MPC_STATUS;
+				comms_timer_start(hWnd);
 				break;
 			}
 		} else if (!strcmp(msg_type, "ACK")) {
+			comms_timer_stop(hWnd);
+
 			switch (data->cmd) {
 			case MPC_NONE:
 				odprintf("comms[parse]: no command running?");
@@ -885,10 +924,13 @@ int comms_run(HWND hWnd, struct slmpc_data *data, enum cmd_status cmd) {
 			odprintf("closesocket: %d (%ld)", ret, err);
 
 			data->s = INVALID_SOCKET;
+			comms_timer_stop(hWnd);
+			data->cmd = MPC_NONE;
 			return 1;
 		}
 
 		data->cmd = MPC_NOIDLE;
+		comms_timer_start(hWnd);
 
 	case MPC_STATUS:
 		data->pending_cmd = cmd;
@@ -934,4 +976,56 @@ int comms_kbd(HWND hWnd, struct slmpc_data *data) {
 
 	data->sl_status = current;
 	return 0;
+}
+
+void comms_timer_start(HWND hWnd) {
+	INT ret;
+	DWORD err;
+
+	odprintf("comms[timer] start");
+
+	SetLastError(0);
+	ret = SetTimer(hWnd, CMD_TIMER_ID, CMD_TIMEOUT, NULL);
+	err = GetLastError();
+	odprintf("SetTimer: %d (%ld)", ret, err);
+}
+
+void comms_timer_stop(HWND hWnd) {
+	INT ret;
+	DWORD err;
+
+	odprintf("comms[timer] stop");
+
+	SetLastError(0);
+	ret = KillTimer(hWnd, CMD_TIMER_ID);
+	err = GetLastError();
+	odprintf("KillTimer: %d (%ld)", ret, err);
+}
+
+void comms_timeout(HWND hWnd, struct slmpc_data *data) {
+	struct tray_status *status = &data->status;
+	enum cmd_status cmd = data->cmd;
+	static char *cmds[] = {
+	/* MPC_NONE */ "unknown",
+	/* MPC_CONNECT */ "new connection",
+	/* MPC_PASSWORD */ "password command",
+	/* MPC_STATUS */ "status command",
+	/* MPC_IDLE */ "idle command",
+	/* MPC_NOIDLE */ "noidle command",
+	/* MPC_PLAY */ "play command",
+	/* MPC_PAUSE */ "pause command"
+	};
+	INT ret;
+
+	odprintf("comms[timeout]");
+
+	if (data->s == INVALID_SOCKET)
+		return;
+
+	comms_disconnect(hWnd, data);
+
+	ret = snprintf(status->msg, sizeof(status->msg), "Timeout waiting for response to %s", cmds[cmd]);
+	if (ret < 0)
+		status->msg[0] = 0;
+	tray_update(hWnd, data);
 }

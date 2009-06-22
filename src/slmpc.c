@@ -123,7 +123,7 @@ int slmpc_run(HINSTANCE hInstance, HWND hWnd, char *node, char *service, char *p
 	}
 
 fail_connect:
-	comms_destroy(&data);
+	comms_destroy(hWnd, &data);
 
 fail_comms:
 	tray_remove(hWnd, &data);
@@ -143,10 +143,10 @@ fail_kbd:
 	return status;
 }
 
-void slmpc_shutdown(struct slmpc_data *data, int status) {
+void slmpc_shutdown(HWND hWnd, struct slmpc_data *data, int status) {
 	odprintf("slmpc[shutdown]");
 
-	comms_disconnect(data);
+	comms_disconnect(hWnd, data);
 	data->running = 0;
 
 	PostQuitMessage(status);
@@ -165,7 +165,7 @@ void slmpc_retry(HWND hWnd, struct slmpc_data *data) {
 		odprintf("SetTimer: %d (%ld)", ret, err);
 		if (ret == 0) {
 			mbprintf(TITLE, MB_OK|MB_ICONERROR, "Error starting connection retry timer (%ld)", err);
-			slmpc_shutdown(data, EXIT_FAILURE);
+			slmpc_shutdown(hWnd, data, EXIT_FAILURE);
 		}
 	}
 }
@@ -231,6 +231,16 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 			ret = comms_connect(hWnd, data);
 			if (ret != 0)
 				slmpc_retry(hWnd, data);
+			return TRUE;
+
+		case CMD_TIMER_ID:
+			SetLastError(0);
+			ret = KillTimer(hWnd, CMD_TIMER_ID);
+			err = GetLastError();
+			odprintf("KillTimer: %d (%ld)", ret, err);
+
+			comms_timeout(hWnd, data);
+			slmpc_retry(hWnd, data);
 			return TRUE;
 		}
 		break;

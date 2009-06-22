@@ -24,10 +24,13 @@ struct tcp_keepalive {
 }; 
 #endif
 
+#define CMD_TIMEOUT 30000 /* 30 seconds */
+
 int comms_init(struct slmpc_data *data);
-void comms_destroy(struct slmpc_data *data);
-void comms_disconnect(struct slmpc_data *data);
+void comms_destroy(HWND hWnd, struct slmpc_data *data);
+void comms_disconnect(HWND hWnd, struct slmpc_data *data);
 int comms_connect(HWND hWnd, struct slmpc_data *data);
 int comms_activity(HWND hWnd, struct slmpc_data *data, SOCKET s, WORD sEvent, WORD sError);
 int comms_parse(HWND hWnd, struct slmpc_data *data);
 int comms_kbd(HWND hWnd, struct slmpc_data *data);
+void comms_timeout(HWND hWnd, struct slmpc_data *data);
