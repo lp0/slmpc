@@ -224,9 +224,9 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		switch (wParam) {
 		case RETRY_TIMER_ID:
 			SetLastError(0);
-			ret = KillTimer(hWnd, RETRY_TIMER_ID);
+			retb = KillTimer(hWnd, RETRY_TIMER_ID);
 			err = GetLastError();
-			odprintf("KillTimer: %d (%ld)", ret, err);
+			odprintf("KillTimer: %s (%ld)", retb == TRUE ? "TRUE" : "FALSE", err);
 			
 			ret = comms_connect(hWnd, data);
 			if (ret != 0)
@@ -235,9 +235,9 @@ LRESULT CALLBACK slmpc_window(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 		case CMD_TIMER_ID:
 			SetLastError(0);
-			ret = KillTimer(hWnd, CMD_TIMER_ID);
+			retb = KillTimer(hWnd, CMD_TIMER_ID);
 			err = GetLastError();
-			odprintf("KillTimer: %d (%ld)", ret, err);
+			odprintf("KillTimer: %s (%ld)", retb == TRUE ? "TRUE" : "FALSE", err);
 
 			comms_timeout(hWnd, data);
 			slmpc_retry(hWnd, data);

@@ -991,7 +991,7 @@ void comms_timer_start(HWND hWnd) {
 }
 
 void comms_timer_stop(HWND hWnd) {
-	INT ret;
+	BOOL ret;
 	DWORD err;
 
 	odprintf("comms[timer] stop");
@@ -999,7 +999,7 @@ void comms_timer_stop(HWND hWnd) {
 	SetLastError(0);
 	ret = KillTimer(hWnd, CMD_TIMER_ID);
 	err = GetLastError();
-	odprintf("KillTimer: %d (%ld)", ret, err);
+	odprintf("KillTimer: %s (%ld)", ret == TRUE ? "TRUE" : "FALSE", err);
 }
 
 void comms_timeout(HWND hWnd, struct slmpc_data *data) {
