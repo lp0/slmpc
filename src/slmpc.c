@@ -263,9 +263,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hInstancePrev, LPSTR lpCmdLine
 	WSADATA wsaData;
 	LPWSTR *argv;
 	int argc;
-	char node[512];
+	char node[512] = "";
 	char service[512] = DEFAULT_SERVICE;
 	char password[512] = "";
+	char *mpd_host;
+	char *mpd_port;
 	int ret, status, i;
 	(void)hInstancePrev;
 	(void)lpCmdLine;
@@ -287,21 +289,51 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hInstancePrev, LPSTR lpCmdLine
 	for (i = 0; i < argc; i++)
 		odprintf("argv[%d]=%S", i, argv[i]);
 
-	if (argc < 2 || argc > 4) {
+	mpd_host = getenv("MPD_HOST");
+	mpd_port = getenv("MPD_PORT");
+	odprintf("mpd_host=%s", mpd_host);
+	odprintf("mpd_port=%s", mpd_port);
+	if (mpd_host != NULL) {
+		char *tmp = strchr(mpd_host, '@');
+		if (tmp == NULL) {
+			snprintf(node, sizeof(node), "%s", mpd_host);
+		} else {
+			tmp[0] = 0;
+			tmp++;
+			snprintf(node, sizeof(node), "%s", tmp);
+			snprintf(password, sizeof(password), "%s", mpd_host);
+		}
+	}
+	if (mpd_port != NULL)
+		snprintf(service, sizeof(service), "%s", mpd_port);
+
+	if ((node[0] == 0 && argc < 2) || argc > 4) {
+		if (node[0] == 0) {
 #if HAVE_GETADDRINFO
-		odprintf("Usage: %S <node (host/ip)> [service (port)] [password]", argv[0]);
-		mbprintf(TITLE, MB_OK|MB_ICONERROR, "Usage: %S <node (host/ip)> [service (port)] [password]", argv[0]);
+			odprintf("Usage: %S <node (host/ip)> [service (port)] [password]", argv[0]);
+			mbprintf(TITLE, MB_OK|MB_ICONERROR, "Usage: %S <node (host/ip)> [service (port)] [password]", argv[0]);
 #else
-		odprintf("Usage: %S <ip> [port] [password]", argv[0]);
-		mbprintf(TITLE, MB_OK|MB_ICONERROR, "Usage: %S <ip> [port] [password]", argv[0]);
+			odprintf("Usage: %S <ip> [port] [password]", argv[0]);
+			mbprintf(TITLE, MB_OK|MB_ICONERROR, "Usage: %S <ip> [port] [password]", argv[0]);
 #endif
+		} else {
+#if HAVE_GETADDRINFO
+			odprintf("Usage: %S [node (host/ip)] [service (port)] [password]", argv[0]);
+			mbprintf(TITLE, MB_OK|MB_ICONERROR, "Usage: %S [node (host/ip)] [service (port)] [password]", argv[0]);
+#else
+			odprintf("Usage: %S [ip] [port] [password]", argv[0]);
+			mbprintf(TITLE, MB_OK|MB_ICONERROR, "Usage: %S [ip] [port] [password]", argv[0]);
+#endif
+		}
 		status = EXIT_FAILURE;
 		goto free_argv;
 	}
 
-	ret = snprintf(node, sizeof(node), "%S", argv[1]);
-	if (ret < 0)
-		node[0] = 0;
+	if (argc >= 2) {
+		ret = snprintf(node, sizeof(node), "%S", argv[1]);
+		if (ret < 0)
+			node[0] = 0;
+	}
 
 	if (argc >= 3) {
 		ret = snprintf(service, sizeof(service), "%S", argv[2]);
